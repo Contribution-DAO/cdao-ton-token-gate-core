@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  ton-backend:
+    build: ./ton-backend
+    ports:
+      - "8040:8040"
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  ton-proof:
+    build: ./ton-proof
+    ports:
+      - "8041:8041"
+    env_file:
+      - .env

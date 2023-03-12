@@ -42,6 +42,6 @@ func InitRouter(db *gorm.DB) {
 	router.GET("/telegram/groups/:id", controllerHandler.GetTelegramGroup)
 	router.POST("/telegram/groups/link", controllerHandler.CreateTelegramGroup)
 
-	println("The graph backend server listen to port 8080")
-	router.Run(":8080")
+	println("The graph backend server listen to port 8040")
+	router.Run(":8040")
 }

@@ -7,11 +7,11 @@ import (
 )
 
 var Config = struct {
-	Port int `env:"PORT" envDefault:"8081"`
+	Port int `env:"PORT" envDefault:"8041"`
 }{}
 
 var Proof = struct {
-	PayloadSignatureKey string `env:"TONPROOF_PAYLOAD_SIGNATURE_KEY"`
+	PayloadSignatureKey string `env:"JWT_SECRET"`
 	PayloadLifeTimeSec  int64  `env:"TONPROOF_PAYLOAD_LIFETIME_SEC" envDefault:"300"`
 	ProofLifeTimeSec    int64  `env:"TONPROOF_PROOF_LIFETIME_SEC" envDefault:"300"`
 	ExampleDomain       string `env:"TONPROOF_EXAMPLE_DOMAIN" envDefault:"ton-connect.github.io"`

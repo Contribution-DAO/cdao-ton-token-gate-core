@@ -22,7 +22,7 @@ func main() {
 	// 	return
 	// }
 
-	callbackURL := "http://127.0.0.1:8040/social-auth/twitter/callback"
+	callbackURL := "https://ton-core.contributiondao.com/social-auth/twitter/callback"
 
 	gothic.Store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
 	goth.UseProviders(

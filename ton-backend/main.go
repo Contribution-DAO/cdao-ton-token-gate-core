@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"log"
 	"os"
 
 	"github.com/gorilla/sessions"
+	"github.com/joho/godotenv"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
@@ -17,10 +19,12 @@ func main() {
 
 	flag.Parse()
 
-	// if godotenv.Load() != nil {
-	// 	log.Fatalf("Error loading .env file")
-	// 	return
-	// }
+	if os.Getenv("USE_SYSTEM_ENV") == "" {
+		if godotenv.Load() != nil {
+			log.Fatalf("Error loading .env file")
+			return
+		}
+	}
 
 	callbackURL := "https://ton-core.contributiondao.com/social-auth/twitter/callback"
 

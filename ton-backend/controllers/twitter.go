@@ -94,3 +94,39 @@ func (h *ControllerHandler) HandleTwitterCallback(c *gin.Context) {
 		c.Redirect(301, os.Getenv("CONNECT_FRONTEND_HOST"))
 	}
 }
+
+func (h *ControllerHandler) VerifyTwitterFollow(c *gin.Context) {
+	groupId := c.Param("groupId")
+
+	address, err := GetUidFromHeader(c)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	wallet, err := h.s.GetWalletSimple(address)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	group, err := h.s.GetTelegramGroup(groupId, address)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	followed, err := h.s.VerifyTwitterFollow(group.TwitterUsername, wallet.TwitterAccessToken, wallet.TwitterAccessTokenSecret)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"followed": followed,
+	})
+}

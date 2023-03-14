@@ -34,73 +34,54 @@ func (h *ServiceHandler) LinkTwitter(address string, twitterUsername string, twi
 	return &wallet, nil
 }
 
-// generates a random nonce
+type OAuth1 struct {
+	ConsumerKey    string
+	ConsumerSecret string
+	AccessToken    string
+	AccessSecret   string
+}
+
+// Params being any key-value url query parameter pairs
+func (auth OAuth1) BuildOAuth1Header(method, path string, params map[string]string) string {
+	vals := url.Values{}
+	vals.Add("oauth_nonce", generateNonce())
+	vals.Add("oauth_consumer_key", auth.ConsumerKey)
+	vals.Add("oauth_signature_method", "HMAC-SHA1")
+	vals.Add("oauth_timestamp", strconv.Itoa(int(time.Now().Unix())))
+	vals.Add("oauth_token", auth.AccessToken)
+	vals.Add("oauth_version", "1.0")
+
+	for k, v := range params {
+		vals.Add(k, v)
+	}
+	// net/url package QueryEscape escapes " " into "+", this replaces it with the percentage encoding of " "
+	parameterString := strings.Replace(vals.Encode(), "+", "%20", -1)
+
+	// Calculating Signature Base String and Signing Key
+	signatureBase := strings.ToUpper(method) + "&" + url.QueryEscape(strings.Split(path, "?")[0]) + "&" + url.QueryEscape(parameterString)
+	signingKey := url.QueryEscape(auth.ConsumerSecret) + "&" + url.QueryEscape(auth.AccessSecret)
+	signature := calculateSignature(signatureBase, signingKey)
+
+	return "OAuth oauth_consumer_key=\"" + url.QueryEscape(vals.Get("oauth_consumer_key")) + "\", oauth_nonce=\"" + url.QueryEscape(vals.Get("oauth_nonce")) +
+		"\", oauth_signature=\"" + url.QueryEscape(signature) + "\", oauth_signature_method=\"" + url.QueryEscape(vals.Get("oauth_signature_method")) +
+		"\", oauth_timestamp=\"" + url.QueryEscape(vals.Get("oauth_timestamp")) + "\", oauth_token=\"" + url.QueryEscape(vals.Get("oauth_token")) +
+		"\", oauth_version=\"" + url.QueryEscape(vals.Get("oauth_version")) + "\""
+}
+
+func calculateSignature(base, key string) string {
+	hash := hmac.New(sha1.New, []byte(key))
+	hash.Write([]byte(base))
+	signature := hash.Sum(nil)
+	return base64.StdEncoding.EncodeToString(signature)
+}
+
 func generateNonce() string {
-	rand.Seed(time.Now().UnixNano())
-	nonce := rand.Int63()
-	return strconv.FormatInt(nonce, 10)
-}
-
-// generates a timestamp
-func generateTimestamp() string {
-	timestamp := time.Now().Unix()
-	return strconv.FormatInt(timestamp, 10)
-}
-
-// generates the signature base string
-func generateBaseString(consumerKey string, nonce string, accessToken string, timestamp string) string {
-	// set up the parameters for the signature base string
-	parameters := make(url.Values)
-	parameters.Set("oauth_consumer_key", consumerKey)
-	parameters.Set("oauth_nonce", nonce)
-	parameters.Set("oauth_signature_method", "HMAC-SHA1")
-	parameters.Set("oauth_timestamp", timestamp)
-	parameters.Set("oauth_token", accessToken)
-	parameters.Set("oauth_version", "1.0")
-
-	// encode the parameters and sort them
-	encodedParams := parameters.Encode()
-	sortedParams := strings.ReplaceAll(encodedParams, "+", "%20")
-
-	// construct the signature base string
-	baseString := http.MethodGet + "&" + url.QueryEscape("<request-url>") + "&" + url.QueryEscape(sortedParams)
-
-	return baseString
-}
-
-// generates the signature
-func generateSignature(consumerSecret string, accessSecret string, baseString string) string {
-	// construct the signing key
-	signingKey := url.QueryEscape(consumerSecret) + "&" + url.QueryEscape(accessSecret)
-
-	// calculate the HMAC-SHA1 signature
-	hmac := hmac.New(sha1.New, []byte(signingKey))
-	hmac.Write([]byte(baseString))
-	signature := base64.StdEncoding.EncodeToString(hmac.Sum(nil))
-
-	return signature
-}
-
-// generates the authorization header
-func generateAuthorizationHeader(consumerKey string, accessToken string, nonce string, signature string, timestamp string) string {
-	// set up the authorization header parameters
-	parameters := make(url.Values)
-	parameters.Set("oauth_consumer_key", consumerKey)
-	parameters.Set("oauth_nonce", nonce)
-	parameters.Set("oauth_signature", signature)
-	parameters.Set("oauth_signature_method", "HMAC-SHA1")
-	parameters.Set("oauth_timestamp", timestamp)
-	parameters.Set("oauth_token", accessToken)
-	parameters.Set("oauth_version", "1.0")
-
-	// encode the parameters and sort them
-	encodedParams := parameters.Encode()
-	sortedParams := strings.ReplaceAll(encodedParams, "+", "%20")
-
-	// construct the authorization header
-	authorization := "OAuth " + sortedParams
-
-	return authorization
+	const allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 48)
+	for i := range b {
+		b[i] = allowed[rand.Intn(len(allowed))]
+	}
+	return string(b)
 }
 
 func (h *ServiceHandler) VerifyTwitterFollow(targetUsername string, accessToken string, accessTokenSecret string) (bool, error) {
@@ -117,26 +98,21 @@ func (h *ServiceHandler) VerifyTwitterFollow(targetUsername string, accessToken 
 		return false, err
 	}
 
-	nonce, err := GenerateRandomString(16)
-	if err != nil {
-		return false, err
+	auth := OAuth1{
+		ConsumerKey:    os.Getenv("TWITTER_API_KEY"),
+		ConsumerSecret: os.Getenv("TWITTER_API_SECRET"),
+		AccessToken:    accessToken,
+		AccessSecret:   accessTokenSecret,
 	}
 
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	authorization := auth.BuildOAuth1Header(http.MethodGet, path, map[string]string{
+		"screen_name": targetUsername,
+	})
 
 	// Set the request headers
-	req.Header.Set("Authorization", generateAuthorizationHeader(
-		os.Getenv("TWITTER_API_KEY"),
-		accessToken,
-		nonce,
-		generateSignature(os.Getenv("TWITTER_API_SECRET"), accessTokenSecret, generateBaseString(
-			os.Getenv("TWITTER_API_KEY"),
-			nonce,
-			accessToken,
-			timestamp,
-		)),
-		timestamp,
-	))
+	req.Header.Set("Authorization", authorization)
+
+	// fmt.Println(authorization)
 
 	// Make the request
 	client := &http.Client{}
@@ -151,6 +127,8 @@ func (h *ServiceHandler) VerifyTwitterFollow(targetUsername string, accessToken 
 	if err != nil {
 		return false, err
 	}
+
+	// fmt.Println(string(body))
 
 	// Unmarshal the JSON response into a struct
 	var data []struct {

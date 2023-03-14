@@ -172,13 +172,13 @@ func (h *ServiceHandler) CreateTelegramGroup(id string, address string, twitterU
 	}
 
 	// Print chat information
-	fmt.Println("Chat ID:", chat.ID)
-	fmt.Println("Chat Type:", chat.Type)
-	fmt.Println("Chat Title:", chat.Title)
-	fmt.Println("Chat Username:", chat.UserName)
-	fmt.Println("Chat First Name:", chat.FirstName)
-	fmt.Println("Chat Last Name:", chat.LastName)
-	fmt.Println("Chat Avatar URL:", avatarURL)
+	// fmt.Println("Chat ID:", chat.ID)
+	// fmt.Println("Chat Type:", chat.Type)
+	// fmt.Println("Chat Title:", chat.Title)
+	// fmt.Println("Chat Username:", chat.UserName)
+	// fmt.Println("Chat First Name:", chat.FirstName)
+	// fmt.Println("Chat Last Name:", chat.LastName)
+	// fmt.Println("Chat Avatar URL:", avatarURL)
 
 	// Get existing group
 	existingGroup, err := h.GetTelegramGroup(id, address)

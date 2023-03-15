@@ -70,9 +70,9 @@ func (h *ControllerHandler) GetTelegramGroup(c *gin.Context) {
 	}
 }
 
-func (h *ControllerHandler) GetTelegramGroupRoot(c *gin.Context) {
+func (h *ControllerHandler) GetTelegramGroupFromTelegramUserId(c *gin.Context) {
 	groupId := c.Param("id")
-	address := c.Param("address")
+	telegramUserId := c.Param("telegramUserId")
 
 	s := c.Request.Header.Get("Authorization")
 	token := strings.TrimPrefix(s, "Bearer ")
@@ -82,7 +82,14 @@ func (h *ControllerHandler) GetTelegramGroupRoot(c *gin.Context) {
 		return
 	}
 
-	group, err := h.s.GetTelegramGroup(groupId, address)
+	wallet, err := h.s.GetWalletFromTelegramUserId(telegramUserId)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	group, err := h.s.GetTelegramGroup(groupId, wallet.ID)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)

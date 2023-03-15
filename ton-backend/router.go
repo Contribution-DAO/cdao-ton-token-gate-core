@@ -40,7 +40,7 @@ func InitRouter(db *gorm.DB) {
 	// Telegram group fetch
 	router.GET("/telegram/groups", controllerHandler.ListTelegramGroups)
 	router.GET("/telegram/groups/:id", controllerHandler.GetTelegramGroup)
-	router.GET("/internal/:address/telegram/groups/:id", controllerHandler.GetTelegramGroupRoot)
+	router.GET("/internal/:telegramUserId/telegram/groups/:id", controllerHandler.GetTelegramGroupFromTelegramUserId)
 	router.POST("/telegram/groups/link", controllerHandler.CreateTelegramGroup)
 
 	// Twitter follow

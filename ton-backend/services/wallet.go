@@ -38,6 +38,16 @@ func (h *ServiceHandler) GetWalletSimple(address string) (*model.Wallet, error) 
 	return &wallet, nil
 }
 
+func (h *ServiceHandler) GetWalletFromTelegramUserId(telegramUserId string) (*model.Wallet, error) {
+	var wallet model.Wallet
+
+	if result := h.db.First(&wallet, "telegram_user_id = ?", telegramUserId); result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &wallet, nil
+}
+
 func (h *ServiceHandler) GetWallet(address string) (*model.Wallet, error) {
 	var wallet model.Wallet
 

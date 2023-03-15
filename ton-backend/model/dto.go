@@ -31,6 +31,7 @@ type TonAccountInfo struct {
 type CreateTelegramGroupDTO struct {
 	Id              string `json:"id"`
 	TwitterUsername string `json:"twitterUsername"`
+	InvitationLink  string `json:"invitationLink"`
 	IsSecret        bool   `json:"isSecret"`
 }
 
@@ -39,6 +40,7 @@ type TelegramGroupResponseDTO struct {
 
 	IsOwner    bool `json:"isOwner"`
 	IsApproved bool `json:"isApproved"`
+	IsMinted   bool `json:"isMinted"`
 	IsJoined   bool `json:"isJoined"`
 }
 

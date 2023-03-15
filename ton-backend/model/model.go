@@ -10,13 +10,15 @@ type TelegramGroup struct {
 	TwitterUsername string `json:"twitterUsername" gorm:"index"`
 	Name            string `json:"name" gorm:"index"`
 	Avatar          string `json:"avatar"`
+	InvitationLink  string `json:"invitationLink"`
 	IsSecret        bool   `json:"isSecret"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	Sbts   []Sbt  `json:"sbts"`
-	Wallet Wallet `json:"wallet"`
+	Sbts              []Sbt              `json:"sbts"`
+	Wallet            Wallet             `json:"wallet"`
+	TelegramApprovals []TelegramApproval `json:"telegramApprovals"`
 }
 
 type Wallet struct {
@@ -29,7 +31,9 @@ type Wallet struct {
 	TelegramUsername string `json:"telegramUsername" gorm:"index"`
 	TelegramAvatar   string `json:"telegramAvatar"`
 
+	TwitterUserId            string `json:"twitterUserId" gorm:"index"`
 	TwitterUsername          string `json:"twitterUsername" gorm:"index"`
+	TwitterName              string `json:"twitterName" gorm:"index"`
 	TwitterAvatar            string `json:"twitterAvatar"`
 	TwitterAccessToken       string `json:"twitterAccessToken"`
 	TwitterAccessTokenSecret string `json:"twitterAccessTokenSecret"`
@@ -37,8 +41,9 @@ type Wallet struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	Sbts           []Sbt           `json:"sbts"`
-	TelegramGroups []TelegramGroup `json:"telegramGroups"`
+	Sbts              []Sbt              `json:"sbts"`
+	TelegramGroups    []TelegramGroup    `json:"telegramGroups"`
+	TelegramApprovals []TelegramApproval `json:"telegramApprovals"`
 }
 
 type Sbt struct {
@@ -59,6 +64,9 @@ type TelegramApproval struct {
 	ID              string `json:"id" gorm:"type:uuid;primarykey;default:gen_random_uuid()"`
 	WalletID        string `json:"walletAddress" gorm:"index"`
 	TelegramGroupID string `json:"telegramGroupId" gorm:"index"`
+
+	Wallet        Wallet        `json:"wallet"`
+	TelegramGroup TelegramGroup `json:"telegramGroup"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

@@ -13,7 +13,7 @@ import (
 )
 
 func (h *ControllerHandler) HandleUserReceived(address string, user goth.User) error {
-	_, err := h.s.LinkTwitter(address, user.Name, user.AvatarURL, user.AccessToken, user.AccessTokenSecret)
+	_, err := h.s.LinkTwitter(address, user.UserID, user.NickName, user.Name, user.AvatarURL, user.AccessToken, user.AccessTokenSecret)
 	return err
 }
 

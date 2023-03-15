@@ -73,6 +73,7 @@ func (h *ServiceHandler) ConvertToTelegramGroupResponseDTO(group *model.Telegram
 		}
 	} else {
 		var sbt *model.Sbt
+		var approval *model.TelegramApproval
 
 		for _, x := range group.Sbts {
 			if x.WalletID == address {
@@ -81,10 +82,18 @@ func (h *ServiceHandler) ConvertToTelegramGroupResponseDTO(group *model.Telegram
 			}
 		}
 
+		for _, x := range group.TelegramApprovals {
+			if x.WalletID == address {
+				approval = &x
+				break
+			}
+		}
+
 		return &model.TelegramGroupResponseDTO{
 			TelegramGroup: *group,
 			IsOwner:       group.WalletID == address,
-			IsApproved:    sbt != nil,
+			IsApproved:    approval != nil,
+			IsMinted:      sbt != nil,
 			IsJoined:      sbt != nil && sbt.IsJoined,
 		}
 	}
@@ -93,7 +102,7 @@ func (h *ServiceHandler) ConvertToTelegramGroupResponseDTO(group *model.Telegram
 func (h *ServiceHandler) ListTelegramGroups(address string) ([]model.TelegramGroupResponseDTO, error) {
 	var groups []model.TelegramGroup
 
-	if result := h.db.Preload("Wallet").Preload("Sbts").Find(&groups); result.Error != nil {
+	if result := h.db.Preload("Wallet").Preload("Sbts").Preload("TelegramApprovals").Find(&groups); result.Error != nil {
 		return nil, result.Error
 	}
 
@@ -132,14 +141,14 @@ func (h *ServiceHandler) GetTelegramGroupSimple(id string) (*model.TelegramGroup
 func (h *ServiceHandler) GetTelegramGroup(id string, address string) (*model.TelegramGroupResponseDTO, error) {
 	var group model.TelegramGroup
 
-	if result := h.db.Preload("Sbts").Preload("Wallet").First(&group, "id = ?", id); result.Error != nil {
+	if result := h.db.Preload("Sbts").Preload("TelegramApprovals").Preload("Wallet").First(&group, "id = ?", id); result.Error != nil {
 		return nil, result.Error
 	}
 
 	return h.ConvertToTelegramGroupResponseDTO(&group, address), nil
 }
 
-func (h *ServiceHandler) CreateTelegramGroup(id string, address string, twitterUsername string, isSecret bool) (*model.TelegramGroup, error) {
+func (h *ServiceHandler) CreateTelegramGroup(id string, address string, twitterUsername string, invitationLink string, isSecret bool) (*model.TelegramGroup, error) {
 	twitterUsername = strings.TrimPrefix(twitterUsername, "@")
 
 	// Replace with your bot token
@@ -190,6 +199,7 @@ func (h *ServiceHandler) CreateTelegramGroup(id string, address string, twitterU
 		TwitterUsername: twitterUsername,
 		Name:            chat.Title,
 		Avatar:          avatarURL,
+		InvitationLink:  invitationLink,
 		IsSecret:        isSecret,
 	}
 

@@ -17,13 +17,15 @@ import (
 	"github.com/Contribution-DAO/cdao-ton-token-gate-core/model"
 )
 
-func (h *ServiceHandler) LinkTwitter(address string, twitterUsername string, twitterAvatar string, twitterAccessToken string, twitterAccessTokenSecret string) (*model.Wallet, error) {
+func (h *ServiceHandler) LinkTwitter(address string, twitterUserId string, twitterUsername string, twitterName string, twitterAvatar string, twitterAccessToken string, twitterAccessTokenSecret string) (*model.Wallet, error) {
 	wallet := model.Wallet{
 		ID: address,
 	}
 
 	if result := h.db.Model(&wallet).Updates(map[string]interface{}{
+		"twitter_user_id":             twitterUserId,
 		"twitter_username":            twitterUsername,
+		"twitter_name":                twitterName,
 		"twitter_avatar":              twitterAvatar,
 		"twitter_access_token":        twitterAccessToken,
 		"twitter_access_token_secret": twitterAccessTokenSecret,

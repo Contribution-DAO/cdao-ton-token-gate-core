@@ -83,7 +83,7 @@ func (h *ControllerHandler) CreateTelegramGroup(c *gin.Context) {
 		return
 	}
 
-	group, err := h.s.CreateTelegramGroup(dto.Id, address, dto.TwitterUsername, dto.IsSecret)
+	group, err := h.s.CreateTelegramGroup(dto.Id, address, dto.TwitterUsername, dto.InvitationLink, dto.IsSecret)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)

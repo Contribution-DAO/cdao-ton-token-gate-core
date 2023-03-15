@@ -105,7 +105,7 @@ func (h *ServiceHandler) ScanSbt(approvalId string, nftOwner string) (string, er
 
 		valid, nftApprovalId, err := h.ValidateNft(nftAddress.String(), nftOwner)
 
-		fmt.Println(nftApprovalId, approvalId, nftApprovalId == approvalId)
+		fmt.Println(nftApprovalId, approvalId, nftApprovalId == approvalId, valid)
 
 		if !valid || err != nil {
 			continue

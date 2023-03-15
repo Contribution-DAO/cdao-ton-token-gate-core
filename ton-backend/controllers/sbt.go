@@ -75,7 +75,14 @@ func (h *ControllerHandler) ScanSbt(c *gin.Context) {
 		return
 	}
 
-	contractAddress, err := h.s.ScanSbt(approvalId, address)
+	wallet, err := h.s.GetWalletSimple(address)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	contractAddress, err := h.s.ScanSbt(approvalId, wallet.HumanAddress)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)

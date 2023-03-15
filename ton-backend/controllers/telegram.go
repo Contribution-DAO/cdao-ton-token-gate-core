@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/Contribution-DAO/cdao-ton-token-gate-core/model"
 	"github.com/Contribution-DAO/cdao-ton-token-gate-core/services"
@@ -71,6 +73,14 @@ func (h *ControllerHandler) GetTelegramGroup(c *gin.Context) {
 func (h *ControllerHandler) GetTelegramGroupRoot(c *gin.Context) {
 	groupId := c.Param("id")
 	address := c.Param("address")
+
+	s := c.Request.Header.Get("Authorization")
+	token := strings.TrimPrefix(s, "Bearer ")
+
+	if token != os.Getenv("JWT_SECRET") {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
 
 	group, err := h.s.GetTelegramGroup(groupId, address)
 

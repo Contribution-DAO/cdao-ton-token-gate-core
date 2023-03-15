@@ -41,3 +41,8 @@ type TelegramGroupResponseDTO struct {
 	IsApproved bool `json:"isApproved"`
 	IsJoined   bool `json:"isJoined"`
 }
+
+type LinkSbtDTO struct {
+	ContractAddress string `json:"contractAddress"`
+	ApprovalId      string `json:"approvalId"`
+}

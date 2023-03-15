@@ -126,7 +126,22 @@ func (h *ControllerHandler) VerifyTwitterFollow(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"followed": followed,
-	})
+	if !followed {
+		c.JSON(http.StatusOK, gin.H{
+			"followed": followed,
+		})
+	} else {
+		approval, err := h.s.CreateTelegramApproval(address, group.ID)
+
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"followed": followed,
+			"approval": approval,
+		})
+	}
+
 }

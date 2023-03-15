@@ -18,7 +18,10 @@ require (
 
 require (
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible // indirect
+	github.com/oasisprotocol/curve25519-voi v0.0.0-20220328075252-7dd334e3daae // indirect
+	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
+	github.com/xssnick/tonutils-go v1.6.2 // indirect
 )
 
 require (

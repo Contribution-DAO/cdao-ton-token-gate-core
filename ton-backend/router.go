@@ -45,6 +45,9 @@ func InitRouter(db *gorm.DB) {
 	// Twitter follow
 	router.GET("/twitter/follow/:groupId", controllerHandler.VerifyTwitterFollow)
 
+	// SBT
+	router.POST("/sbt/link", controllerHandler.LinkSbt)
+
 	println("The graph backend server listen to port 8040")
 	router.Run(":8040")
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/Contribution-DAO/cdao-ton-token-gate-core/model"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Start link telegram group
@@ -215,4 +216,37 @@ func (h *ServiceHandler) CreateTelegramGroup(id string, address string, twitterU
 	} else {
 		return nil, errors.New("not owner")
 	}
+}
+
+func (h *ServiceHandler) CreateTelegramApproval(address string, telegramGroupId string) (*model.TelegramApproval, error) {
+	approval := &model.TelegramApproval{
+		WalletID:        address,
+		TelegramGroupID: telegramGroupId,
+	}
+
+	if result := h.db.Clauses(clause.OnConflict{DoNothing: true}).Create(approval); result.Error != nil {
+		return nil, result.Error
+	}
+
+	return approval, nil
+}
+
+func (h *ServiceHandler) CheckTelegramApproval(address string, telegramGroupId string) (bool, error) {
+	var exists bool
+
+	if result := h.db.Model(&model.TelegramApproval{}).Select("count(*) > 0").Where("wallet_id = ? and telegram_group_id = ?", address, telegramGroupId).Find(&exists); result.Error != nil {
+		return false, result.Error
+	}
+
+	return exists, nil
+}
+
+func (h *ServiceHandler) GetTelegramApproval(approvalId string) (*model.TelegramApproval, error) {
+	var approval model.TelegramApproval
+
+	if result := h.db.First(&approval, approvalId); result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &approval, nil
 }

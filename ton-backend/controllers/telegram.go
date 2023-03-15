@@ -68,6 +68,19 @@ func (h *ControllerHandler) GetTelegramGroup(c *gin.Context) {
 	}
 }
 
+func (h *ControllerHandler) GetTelegramGroupRoot(c *gin.Context) {
+	groupId := c.Param("id")
+	address := c.Param("address")
+
+	group, err := h.s.GetTelegramGroup(groupId, address)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	} else {
+		c.JSON(http.StatusOK, group)
+	}
+}
+
 func (h *ControllerHandler) CreateTelegramGroup(c *gin.Context) {
 	address, err := GetUidFromHeader(c)
 

@@ -91,7 +91,7 @@ func (h *ServiceHandler) ScanSbt(approvalId string, nftOwner string) (string, er
 	}
 
 	nextIndex := collectionData.NextItemIndex.Int64()
-	finalIndex := nextIndex - 20
+	finalIndex := nextIndex - 10
 
 	if finalIndex < 0 {
 		finalIndex = 0
@@ -104,6 +104,8 @@ func (h *ServiceHandler) ScanSbt(approvalId string, nftOwner string) (string, er
 		}
 
 		valid, nftApprovalId, err := h.ValidateNft(nftAddress.String(), nftOwner)
+
+		fmt.Println(nftApprovalId)
 
 		if !valid || err != nil {
 			continue

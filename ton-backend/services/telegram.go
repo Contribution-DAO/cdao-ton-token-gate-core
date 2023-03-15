@@ -254,7 +254,7 @@ func (h *ServiceHandler) CheckTelegramApproval(address string, telegramGroupId s
 func (h *ServiceHandler) GetTelegramApproval(approvalId string) (*model.TelegramApproval, error) {
 	var approval model.TelegramApproval
 
-	if result := h.db.First(&approval, approvalId); result.Error != nil {
+	if result := h.db.First(&approval, "id=?", approvalId); result.Error != nil {
 		return nil, result.Error
 	}
 

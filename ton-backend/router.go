@@ -47,6 +47,8 @@ func InitRouter(db *gorm.DB) {
 
 	// SBT
 	router.POST("/sbt/link", controllerHandler.LinkSbt)
+	router.POST("/sbt/scan/:approvalId", controllerHandler.ScanSbt)
+	router.GET("/sbt/metadata/:approvalId", controllerHandler.GetNftMetadata)
 
 	println("The graph backend server listen to port 8040")
 	router.Run(":8040")

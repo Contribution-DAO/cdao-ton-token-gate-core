@@ -110,14 +110,16 @@ bot.on('left_chat_member', async (ctx) => {
 })
 
 bot.on('new_chat_members', async (ctx) => {
-  try {
-    console.log("==============> new member added")
-    const newMembers = ctx.message.new_chat_members
-    const chatId = ctx.chat?.id
-    const botId = (await bot.telegram.getMe()).id
+  let approved = false
+
+  console.log("==============> new member added")
+  const newMembers = ctx.message.new_chat_members
+  const chatId = ctx.chat?.id
+  const botId = (await bot.telegram.getMe()).id
   
-    if (chatId) {
-      for (const member of newMembers) {
+  if (chatId) {
+    for (const member of newMembers) {
+      try {
         if (member.id === botId) {
           // Bot is a new member of the chat
           await bot.telegram.sendMessage(chatId, `Please input this group ID in Ton connect UI: ${chatId}`)
@@ -130,17 +132,28 @@ bot.on('new_chat_members', async (ctx) => {
           })
 
           if (membership.data.isMinted) {
-            await bot.telegram.sendMessage(chatId, "Hello " + member.first_name /*+ " (ID: " + member.id + ")"*/)
+            // await bot.telegram.sendMessage(chatId, "Hello " + member.first_name /*+ " (ID: " + member.id + ")"*/)
+
+            approved = true
+            await axios.post(process.env.API_HOST + "/internal/" + member.id + "/telegram/groups/" + chatId + "/mark_joined", {
+              joined: true,
+            }, {
+              headers: {
+                Authorization: "Bearer " + process.env.API_SECRET,
+              }
+            })
           } else {
             await ctx.kickChatMember(member.id)
           }
         }
+      } catch (err) {
+        if (!approved) {
+          await ctx.kickChatMember(member.id)
+        }
       }
-  
-      // return await ctx.telegram.sendMessage(chatId, "Hello " + newMembers[0].first_name + " (ID: " + newMembers[0].id + ")")
     }
-  } catch (err) {
 
+    // return await ctx.telegram.sendMessage(chatId, "Hello " + newMembers[0].first_name + " (ID: " + newMembers[0].id + ")")
   }
 
 });

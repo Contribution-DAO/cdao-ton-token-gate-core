@@ -98,6 +98,32 @@ func (h *ControllerHandler) GetTelegramGroupFromTelegramUserId(c *gin.Context) {
 	}
 }
 
+func (h *ControllerHandler) MarkTelegramGroupJoined(c *gin.Context) {
+	groupId := c.Param("id")
+	telegramUserId := c.Param("telegramUserId")
+
+	s := c.Request.Header.Get("Authorization")
+	token := strings.TrimPrefix(s, "Bearer ")
+
+	if token != os.Getenv("JWT_SECRET") {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	wallet, err := h.s.GetWalletFromTelegramUserId(telegramUserId)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	h.s.MarkTelegramGroupJoined(groupId, wallet.ID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+	})
+}
+
 func (h *ControllerHandler) CreateTelegramGroup(c *gin.Context) {
 	address, err := GetUidFromHeader(c)
 

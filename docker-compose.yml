@@ -16,3 +16,8 @@ services:
       - "8041:8041"
     env_file:
       - .env
+
+  ton-bot:
+    build: ./ton-bot
+    env_file:
+      - .env

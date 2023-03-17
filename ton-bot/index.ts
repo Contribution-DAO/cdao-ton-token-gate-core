@@ -13,64 +13,136 @@ bot.start((ctx) => {
 })
 
 bot.on('chat_join_request', async (ctx) => {
+  let approved = false
+
   console.log("==============> new member joined")
   const chatId = ctx.chat?.id
-  if (chatId) {
-    console.log(process.env.API_HOST + "/internal/" + ctx.chatJoinRequest.user_chat_id + "/telegram/groups/" + chatId)
-    const membership = await axios.get(process.env.API_HOST + "/internal/" + ctx.chatJoinRequest.user_chat_id + "/telegram/groups/" + chatId, {
-      headers: {
-        Authorization: "Bearer " + process.env.API_SECRET,
-      }
-    })
+  const userId = ctx.chatJoinRequest.user_chat_id
 
-    if (membership.data.isMinted) {
-      await ctx.approveChatJoinRequest(ctx.chatJoinRequest.user_chat_id)
-      await axios.post(process.env.API_HOST + "/internal/" + ctx.chatJoinRequest.user_chat_id + "/telegram/groups/" + chatId + "/mark_join", {
-        joined: true,
-      }, {
+  try {
+    if (chatId) {
+      console.log(process.env.API_HOST + "/internal/" + userId + "/telegram/groups/" + chatId)
+      const membership = await axios.get(process.env.API_HOST + "/internal/" + userId + "/telegram/groups/" + chatId, {
         headers: {
           Authorization: "Bearer " + process.env.API_SECRET,
         }
       })
-    } else {
-      return await ctx.telegram.sendMessage(chatId, "Rejected " + ctx.chatJoinRequest.from.first_name + "! Please tell him to join again after minting his SBT.")
+  
+      if (membership.data.isMinted && !membership.data.isJoined) {
+        await ctx.approveChatJoinRequest(userId)
+        approved = true
+        await axios.post(process.env.API_HOST + "/internal/" + userId + "/telegram/groups/" + chatId + "/mark_joined", {
+          joined: true,
+        }, {
+          headers: {
+            Authorization: "Bearer " + process.env.API_SECRET,
+          }
+        })
+      } else {
+        await ctx.declineChatJoinRequest(userId)
+        // return await ctx.telegram.sendMessage(chatId, "Rejected " + ctx.chatJoinRequest.from.first_name + "! Please tell him to join again after minting his SBT.")
+      }
+      // return await ctx.telegram.sendMessage(chatId, "Pending " + ctx.chatJoinRequest.from.first_name + " (ID: " + ctx.chatJoinRequest.user_chat_id + ")")
     }
-    // return await ctx.telegram.sendMessage(chatId, "Pending " + ctx.chatJoinRequest.from.first_name + " (ID: " + ctx.chatJoinRequest.user_chat_id + ")")
+  } catch (err) {
+    if (!approved) {
+      await ctx.declineChatJoinRequest(userId)
+    }
   }
 })
 
-bot.on('left_chat_member', async (ctx) => {
-  const member = ctx.message.left_chat_member
-  const chatId = ctx.chat?.id
+// bot.on('chat_member', async (ctx) => {
+//   let approved = false;
 
-  await axios.post(process.env.API_HOST + "/internal/" + member.id + "/telegram/groups/" + chatId + "/mark_join", {
-    joined: false,
-  }, {
-    headers: {
-      Authorization: "Bearer " + process.env.API_SECRET,
-    }
-  })
+//   console.log("==============> new member updated")
+//   const chatId = ctx.chat?.id
+//   const userId = ctx.chatMember.new_chat_member.user.id
+
+//   try {
+//     if (chatId) {
+//       console.log(process.env.API_HOST + "/internal/" + userId + "/telegram/groups/" + chatId)
+//       const membership = await axios.get(process.env.API_HOST + "/internal/" + userId + "/telegram/groups/" + chatId, {
+//         headers: {
+//           Authorization: "Bearer " + process.env.API_SECRET,
+//         }
+//       })
+  
+//       if (membership.data.isMinted && !membership.data.isJoined) {
+//         await ctx.approveChatJoinRequest(userId)
+//         approved = true
+//         await axios.post(process.env.API_HOST + "/internal/" + userId + "/telegram/groups/" + chatId + "/mark_joined", {
+//           joined: true,
+//         }, {
+//           headers: {
+//             Authorization: "Bearer " + process.env.API_SECRET,
+//           }
+//         })
+//       } else {
+//         await ctx.declineChatJoinRequest(userId)
+//         // return await ctx.telegram.sendMessage(chatId, "Rejected " + ctx.chatJoinRequest.from.first_name + "! Please tell him to join again after minting his SBT.")
+//       }
+//       // return await ctx.telegram.sendMessage(chatId, "Pending " + ctx.chatJoinRequest.from.first_name + " (ID: " + ctx.chatJoinRequest.user_chat_id + ")")
+//     }
+//   } catch (err) {
+//     if (!approved) {
+//       await ctx.declineChatJoinRequest(userId)
+//     }
+//   }
+// })
+
+bot.on('left_chat_member', async (ctx) => {
+  try {
+    console.log("==============> member left")
+    const member = ctx.message.left_chat_member
+    const chatId = ctx.chat?.id
+  
+    await axios.post(process.env.API_HOST + "/internal/" + member.id + "/telegram/groups/" + chatId + "/mark_joined", {
+      joined: false,
+    }, {
+      headers: {
+        Authorization: "Bearer " + process.env.API_SECRET,
+      }
+    })
+  } catch (err) {
+
+  }
+
 })
 
 bot.on('new_chat_members', async (ctx) => {
-  console.log("==============> new member added")
-  const newMembers = ctx.message.new_chat_members
-  const chatId = ctx.chat?.id
-  const botId = (await bot.telegram.getMe()).id
+  try {
+    console.log("==============> new member added")
+    const newMembers = ctx.message.new_chat_members
+    const chatId = ctx.chat?.id
+    const botId = (await bot.telegram.getMe()).id
+  
+    if (chatId) {
+      for (const member of newMembers) {
+        if (member.id === botId) {
+          // Bot is a new member of the chat
+          await bot.telegram.sendMessage(chatId, `Please input this group ID in Ton connect UI: ${chatId}`)
+        } else {
+          // New members have joined the chat
+          const membership = await axios.get(process.env.API_HOST + "/internal/" + member.id + "/telegram/groups/" + chatId, {
+            headers: {
+              Authorization: "Bearer " + process.env.API_SECRET,
+            }
+          })
 
-  if (chatId) {
-    if (newMembers.some(member => member.id === botId)) {
-      // Bot is a new member of the chat
-      bot.telegram.sendMessage(chatId, `Please input this group ID in Ton connect UI: ${chatId}`)
-    } else {
-      // New members have joined the chat
-      newMembers.forEach(member => {
-        bot.telegram.sendMessage(chatId, "Hello " + member.first_name + " (ID: " + member.id + ")")
-      })
+          if (membership.data.isMinted) {
+            await bot.telegram.sendMessage(chatId, "Hello " + member.first_name /*+ " (ID: " + member.id + ")"*/)
+          } else {
+            await ctx.kickChatMember(member.id)
+          }
+        }
+      }
+  
+      // return await ctx.telegram.sendMessage(chatId, "Hello " + newMembers[0].first_name + " (ID: " + newMembers[0].id + ")")
     }
+  } catch (err) {
 
-    // return await ctx.telegram.sendMessage(chatId, "Hello " + newMembers[0].first_name + " (ID: " + newMembers[0].id + ")")
   }
+
 });
 
 

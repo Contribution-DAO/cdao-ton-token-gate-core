@@ -26,6 +26,8 @@ bot.on('chat_join_request', async (ctx) => {
     if (membership.data.isMinted) {
       await ctx.approveChatJoinRequest(ctx.chatJoinRequest.user_chat_id)
       await axios.post(process.env.API_HOST + "/internal/" + ctx.chatJoinRequest.user_chat_id + "/telegram/groups/" + chatId + "/mark_join", {
+        joined: true,
+      }, {
         headers: {
           Authorization: "Bearer " + process.env.API_SECRET,
         }
@@ -35,6 +37,19 @@ bot.on('chat_join_request', async (ctx) => {
     }
     // return await ctx.telegram.sendMessage(chatId, "Pending " + ctx.chatJoinRequest.from.first_name + " (ID: " + ctx.chatJoinRequest.user_chat_id + ")")
   }
+})
+
+bot.on('left_chat_member', async (ctx) => {
+  const member = ctx.message.left_chat_member
+  const chatId = ctx.chat?.id
+
+  await axios.post(process.env.API_HOST + "/internal/" + member.id + "/telegram/groups/" + chatId + "/mark_join", {
+    joined: false,
+  }, {
+    headers: {
+      Authorization: "Bearer " + process.env.API_SECRET,
+    }
+  })
 })
 
 bot.on('new_chat_members', async (ctx) => {

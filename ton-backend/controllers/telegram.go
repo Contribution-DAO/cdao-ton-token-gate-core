@@ -110,6 +110,15 @@ func (h *ControllerHandler) MarkTelegramGroupJoined(c *gin.Context) {
 		return
 	}
 
+	var joined struct {
+		Joined bool `json:"joined"`
+	}
+
+	if err := c.Bind(&joined); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
 	wallet, err := h.s.GetWalletFromTelegramUserId(telegramUserId)
 
 	if err != nil {
@@ -117,7 +126,7 @@ func (h *ControllerHandler) MarkTelegramGroupJoined(c *gin.Context) {
 		return
 	}
 
-	h.s.MarkTelegramGroupJoined(groupId, wallet.ID)
+	h.s.MarkTelegramGroupJoined(groupId, wallet.ID, joined.Joined)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

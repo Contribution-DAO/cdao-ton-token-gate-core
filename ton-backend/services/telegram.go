@@ -63,9 +63,9 @@ func (h *ServiceHandler) LinkTelegram(address string, telegramUserId string, tel
 
 // End link telegram group
 
-func (h *ServiceHandler) MarkTelegramGroupJoined(groupId string, address string) error {
+func (h *ServiceHandler) MarkTelegramGroupJoined(groupId string, address string, joined bool) error {
 	if result := h.db.Model(&model.Sbt{}).Where("telegram_group_id = ? and wallet_id = ?", groupId, address).Updates(map[string]interface{}{
-		"is_joined": true,
+		"is_joined": joined,
 	}); result.Error != nil {
 		return result.Error
 	}

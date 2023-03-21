@@ -13,6 +13,7 @@ import (
 
 	"github.com/Contribution-DAO/cdao-ton-token-gate-core/model"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/mymmrac/telego"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -269,4 +270,29 @@ func (h *ServiceHandler) GetTelegramApproval(approvalId string) (*model.Telegram
 	}
 
 	return &approval, nil
+}
+
+func (h *ServiceHandler) TelegramUnban(chatId string, userId string) error {
+	bot, err := telego.NewBot(os.Getenv("TELEGRAM_BOT_TOKEN"), telego.WithDefaultDebugLogger())
+	if err != nil {
+		return err
+	}
+
+	chatIdNum, err := strconv.ParseInt(chatId, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	userIdNum, err := strconv.ParseInt(userId, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	// Create a new unban request
+	_ = bot.UnbanChatMember(&telego.UnbanChatMemberParams{
+		ChatID: telego.ChatID{ID: chatIdNum},
+		UserID: userIdNum,
+	})
+
+	return nil
 }

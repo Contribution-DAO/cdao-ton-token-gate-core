@@ -58,6 +58,11 @@ func (h *ControllerHandler) LinkSbt(c *gin.Context) {
 			return
 		}
 
+		if err = h.s.TelegramUnban(approval.TelegramGroupID, wallet.TelegramUserId); err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
 		c.JSON(http.StatusOK, sbtOut)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -106,6 +111,11 @@ func (h *ControllerHandler) ScanSbt(c *gin.Context) {
 	sbtOut, err := h.s.CreateSbt(approvalId, address, approval.TelegramGroupID, contractAddress)
 
 	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if err = h.s.TelegramUnban(approval.TelegramGroupID, wallet.TelegramUserId); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}

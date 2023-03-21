@@ -156,3 +156,40 @@ func (h *ControllerHandler) CreateTelegramGroup(c *gin.Context) {
 		c.JSON(http.StatusOK, group)
 	}
 }
+
+func (h *ControllerHandler) TelegramUnban(c *gin.Context) {
+	groupId := c.Param("groupId")
+	address, err := GetUidFromHeaderOptional(c)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	wallet, err := h.s.GetWalletSimple(address)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	group, err := h.s.GetTelegramGroup(groupId, address)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if group.IsMinted {
+		err = h.s.TelegramUnban(groupId, wallet.TelegramUserId)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"chatId": groupId,
+		"userId": wallet.TelegramUserId,
+	})
+}

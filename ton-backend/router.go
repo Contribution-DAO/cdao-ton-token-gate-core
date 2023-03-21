@@ -36,6 +36,7 @@ func InitRouter(db *gorm.DB) {
 
 	// Telegram binding
 	router.GET("/telegram/callback", controllerHandler.HandleTelegramCallback)
+	router.POST("/telegram/unban/:groupId", controllerHandler.TelegramUnban)
 
 	// Telegram group fetch
 	router.GET("/telegram/groups", controllerHandler.ListTelegramGroups)
